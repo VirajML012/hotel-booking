@@ -1,40 +1,64 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Title from '../components/Title'
-import { userBookingsDummyData, assets } from '../assets/assets'
+import { assets } from '../assets/assets'
+import { useAppContext } from '../context/AppContext'
+import toast from 'react-hot-toast'
 
 const MyBookings = () => {
-const [bookings, setBookings] = useState(userBookingsDummyData)
+
+    const { axios, getToken, user } = useAppContext()
+    const [bookings, setBookings] = useState([])
+
+    const fetchUserBookings = async ()=>{
+        try {
+            const { data } = await axios.get('/api/bookings/user', {headers: {
+            Authorization: `Bearer ${await getToken()}` }})
+            
+            if (data.success){
+                setBookings(data.bookings)
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message || "Something went wrong")
+        }
+    }
+
+    useEffect(()=>{
+        if (user) {
+            fetchUserBookings()
+        }
+    }, [user])
+    
 
 return (
-<div className='py-28 md:pb-35 md:pt-32 px-4 md:px-16 lg:px-24 xl:px-32'>
+    <div className='py-28 md:pb-35 md:pt-32 px-4 md:px-16 lg:px-24 xl:px-32'>
 
-    <Title title='My Bookings' subTitle='Easily manage your past, current, and upcoming hotel reservations in one place. Plan your trips seamlessly with just a few clicks' align='left' />
+        <Title title='My Bookings' subTitle='Easily manage your past, current, and upcoming hotel reservations in one place. Plan your trips seamlessly with just a few clicks' align='left' />
 
-    <div className='max-w-6xl mt-8 w-full text-gray-800'>
+        <div className='max-w-6xl mt-8 w-full text-gray-800'>
 
-    <div className='hidden md:grid md:grid-cols-[3fr_2fr_1fr] w-full border-b border-gray-300 font-medium text-base py-3'>
-        
-        
-        <div className='w-1/3'>Hotels</div>
-        <div className='w-1/3'>Date & Timings</div>
-        <div className='w-1/3'>Payment</div>
+        <div className='hidden md:grid md:grid-cols-[3fr_2fr_1fr] w-full border-b border-gray-300 font-medium text-base py-3'>
+            <div>Hotels</div>
+            <div>Date & Timings</div>
+            <div>Payment</div>
         </div>
 
         {/* Bookings List */}
         <div>
         {bookings.map((booking, index) => (
-            <div key={booking.id} className='flex flex-col md:flex-row justify-between md:items-center gap-4 py-4 border-b border-gray-200'>
+            <div key={booking._id || index} className='flex flex-col md:flex-row justify-between md:items-center gap-4 py-4 border-b border-gray-200'>
             
               {/* Hotel Details */}
             <div className='flex items-center gap-4 w-full md:w-1/2'>
-                <img src={booking.room.images[0]} alt="hotel img" className='w-24 h-24 object-cover rounded' />
+                <img src={booking.room?.images?.[0]} alt="hotel img" className='w-24 h-24 object-cover rounded' />
                 <div className='flex flex-col text-sm text-gray-700'>
                 <p className='text-2xl font-medium'>
-                    {booking.hotel.name} <span className='text-sm font-normal text-gray-500'>({booking.room.roomType})</span>
+                    {booking.hotel?.name} <span className='text-sm font-normal text-gray-500'>({booking.room?.roomType})</span>
                 </p>
                 <div className='flex items-center gap-2 mt-1'>
                     <img src={assets.locationIcon} alt="location icon" className='w-4' />
-                    <span className='text-gray-500'>{booking.hotel.address}</span>
+                    <span className='text-gray-500'>{booking.hotel?.address}</span>
                 </div>
                 <div className='flex items-center gap-2 mt-1'>
                     <img src={assets.guestsIcon} alt="guests icon" className='w-4' />
@@ -49,7 +73,7 @@ return (
               {/* Date and Timings */}
             <div className='flex flex-col w-full md:w-1/4 gap-2 text-sm text-gray-700'>
                 <div className='flex items-center gap-2'>
-                <p className='font-medium'>Check-   in</p>
+                <p className='font-medium'>Check-in</p>
                 <p className='text-gray-500'>{new Date(booking.checkInDate).toDateString()}</p>
                 </div>
                 <div className='flex items-center gap-2'>

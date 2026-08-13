@@ -13,26 +13,33 @@ const clerkWebhooks = async (req, res) => {
             "svix-signature": req.headers["svix-signature"],
         };
 
-        // Verifying Headers
-        await whook.verify(JSON.stringify(req.body), headers);
+        // Verifying Headers (Note: Svix verify is synchronous, no need for await)
+        whook.verify(JSON.stringify(req.body), headers);
 
         // Getting Data from request body
         const { data, type } = req.body;
 
-        const userData = {
-            _id: data.id,
-            email: data.email_addresses[0].email_address,
-            username: data.first_name + " " + data.last_name,
-            image: data.image_url,
-        };
-
         // Switch Cases for different Events
         switch (type) {
             case "user.created": {
+                const userData = {
+                    _id: data.id,
+                    email: data.email_addresses[0].email_address,
+                    username: data.first_name + " " + (data.last_name || ""), 
+                    image: data.image_url,
+                };
                 await User.create(userData);
                 break;
             }
             case "user.updated": {
+                // FIXED: Missing "const userData = {" was added here
+                const userData = {
+                    _id: data.id,
+                    email: data.email_addresses[0].email_address,
+                    username: data.first_name + " " + (data.last_name || ""),
+                    image: data.image_url,
+                };
+
                 await User.findByIdAndUpdate(data.id, userData);
                 break;
             }
@@ -44,7 +51,7 @@ const clerkWebhooks = async (req, res) => {
                 break;
         }
 
-        res.json({ success: true, message: "Webhook Recieved" });
+        res.json({ success: true, message: "Webhook Received" });
 
     } catch (error) {
         console.log(error.message);
