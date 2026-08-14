@@ -10,22 +10,23 @@ import connectCloudinary from "./configs/cloudinary.js";
 import roomRouter from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
 
+// Initialize external services
 connectDB();
 connectCloudinary();
 
 const app = express()
+
+// Middleware
 app.use(cors())
-
-// Clerk middleware
 app.use(clerkMiddleware())
-app.use(express.json())
+app.use(express.json()) // Parses JSON bodies
 
-
-//API to listen to the webhook events from Clerk
-app.use("/api/clerk", clerkWebhooks);
-
-
+// Routes
 app.get('/', (req, res)=> res.send("API is working"))
+
+// FIXED: Changed app.use to app.post for the webhook!
+app.post("/api/clerk", clerkWebhooks);
+
 app.use('/api/user', userRouter)
 app.use('/api/hotels', hotelRouter)
 app.use('/api/rooms', roomRouter)
@@ -34,3 +35,6 @@ app.use('/api/bookings', bookingRouter)
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, ()=> console.log(`Server running on port ${PORT}`));
+
+// FIXED: Added this export so Vercel can actually run your backend!
+export default app;

@@ -8,9 +8,10 @@ const RecommendedHotels = () => {
     const [recommended, setRecommended] = useState([]);
 
     const filterHotels = () => {
-        // Cleaned up the line break here for better syntax
-        const filteredHotels = rooms.slice().filter(room => searchedCities.includes(room.hotel.city));
-        setRecommended(filteredHotels);
+        // FIXED: Added optional chaining (?.) to rooms, searchedCities, room, and hotel
+        // This safely filters out anything that is null or undefined without crashing!
+        const filteredHotels = rooms?.slice().filter(room => searchedCities?.includes(room?.hotel?.city));
+        setRecommended(filteredHotels || []);
     }
 
     useEffect(() => {

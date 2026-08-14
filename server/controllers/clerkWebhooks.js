@@ -3,6 +3,12 @@ import { Webhook } from "svix";
 
 const clerkWebhooks = async (req, res) => {
     try {
+        // 1. Failsafe: Check if the secret exists in Vercel
+        if (!process.env.CLERK_WEBHOOK_SECRET) {
+            console.error("Missing CLERK_WEBHOOK_SECRET in environment variables");
+            return res.status(500).json({ success: false, message: "Server configuration error" });
+        }
+
         // Create a Svix instance with clerk webhook secret.
         const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
@@ -13,7 +19,7 @@ const clerkWebhooks = async (req, res) => {
             "svix-signature": req.headers["svix-signature"],
         };
 
-        // Verifying Headers (Note: Svix verify is synchronous, no need for await)
+        // Verifying Headers (Note: Svix verify is synchronous)
         whook.verify(JSON.stringify(req.body), headers);
 
         // Getting Data from request body
@@ -25,14 +31,13 @@ const clerkWebhooks = async (req, res) => {
                 const userData = {
                     _id: data.id,
                     email: data.email_addresses[0].email_address,
-                    username: data.first_name + " " + (data.last_name || ""), 
+                    username: data.first_name + " " + (data.last_name || ""),
                     image: data.image_url,
                 };
                 await User.create(userData);
                 break;
             }
             case "user.updated": {
-                // FIXED: Missing "const userData = {" was added here
                 const userData = {
                     _id: data.id,
                     email: data.email_addresses[0].email_address,
@@ -54,8 +59,8 @@ const clerkWebhooks = async (req, res) => {
         res.json({ success: true, message: "Webhook Received" });
 
     } catch (error) {
-        console.log(error.message);
-        res.json({ success: false, message: error.message });
+        console.error("Webhook Error:", error.message);
+        res.status(400).json({ success: false, message: error.message });
     }
 };
 

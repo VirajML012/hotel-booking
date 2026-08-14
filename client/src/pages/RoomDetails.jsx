@@ -3,12 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { assets, facilityIcons, roomCommonData } from '../assets/assets';
 import StarRating from '../components/StarRating';
 import { useAppContext } from '../context/AppContext';
-import toast from 'react-hot-toast'; // FIXED: No curly braces around toast!
+import toast from 'react-hot-toast';
 
 const RoomDetails = () => {
     const { id } = useParams();
     const { rooms, getToken, axios } = useAppContext();
-    const navigate = useNavigate(); // Used direct import just to be safe
+    const navigate = useNavigate();
     
     const [room, setRoom] = useState(null);
     const [mainImage, setMainImage] = useState(null);
@@ -24,8 +24,12 @@ const RoomDetails = () => {
                 toast.error('Check-In Date should be less than Check-Out Date');
                 return;
             }
+            
+            // FIXED: Added the Authorization headers so the backend knows who you are!
             const { data } = await axios.post('/api/bookings/check-availability', {
                 room: id, checkInDate, checkOutDate
+            }, {
+                headers: { Authorization: `Bearer ${await getToken()}` }
             });
             
             if (data.success) {
@@ -75,7 +79,6 @@ const RoomDetails = () => {
     };
 
     useEffect(() => {
-        // FIXED: Added optional chaining (?) so it won't crash if rooms is undefined
         if (rooms && rooms.length > 0) {
             const foundRoom = rooms.find((r) => String(r._id) === String(id));
             if (foundRoom) {
@@ -85,7 +88,6 @@ const RoomDetails = () => {
         }
     }, [rooms, id]);
 
-    // FIXED: Instead of a blank white page, show a loading state while fetching!
     if (!room) {
         return (
             <div className="flex justify-center items-center h-screen">

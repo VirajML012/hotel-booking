@@ -75,7 +75,7 @@ export const AppProvider = ({ children }) => {
         axios,
         showHotelReg,
         setShowHotelReg,
-        searchedCities, 
+        searchedCities,
         setSearchedCities,
         rooms,
         setRooms
