@@ -9,6 +9,7 @@ import hotelRouter from "./routes/hotelRoutes.js";
 import connectCloudinary from "./configs/cloudinary.js";
 import roomRouter from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
+import { stripeWebhooks } from "./controllers/stripeWebhooks.js";
 
 // Initialize external services
 connectDB();
@@ -18,6 +19,8 @@ const app = express()
 
 // Middleware
 app.use(cors())
+app.post("/api/stripe", express.raw({ type: "application/json" }), stripeWebhooks); // FIXED: Changed app.use to app.post for the webhook!
+
 app.use(clerkMiddleware())
 app.use(express.json()) // Parses JSON bodies
 
