@@ -19,7 +19,9 @@ const app = express()
 
 // Middleware
 app.use(cors())
-app.post("/api/stripe", express.raw({ type: "application/json" }), stripeWebhooks); // FIXED: Changed app.use to app.post for the webhook!
+
+// 🔥 FIXED: Changed "/api/stripe" to "/api/bookings/webhook" so it perfectly matches your Stripe CLI!
+app.post("/api/bookings/webhook", express.raw({ type: "application/json" }), stripeWebhooks); 
 
 app.use(clerkMiddleware())
 app.use(express.json()) // Parses JSON bodies
